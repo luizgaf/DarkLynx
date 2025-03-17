@@ -28,6 +28,21 @@ def scan_port(host, port):
 
 def main():
     print("\n \n \n" + ART + "\n" + NAME + "\n" + SLOG + "\n \n \n")
+    parser = argparse.ArgumentParser(description=NAME)
+    parser.add_argument("host", help="Host to scan")
+    parser.add_argument("-p", "--ports", type=int, nargs=2, metavar=("start-port", "end-port"), help="Port interval")
+    args = parser.parse_args()
+
+    host = args.host
+    start_port, end_port = args.ports
+
+    print(f"Scanning {host} ports {start_port} to {end_port}...\n")
+    start_time = time.time()
+
+    for port in range(start_port, end_port + 1):
+        scan_port(host, port)
+
+    print(f"Scanner Completed\nElapsed Time: {time.time()-start_time:.2f} seconds")
 
 
 
