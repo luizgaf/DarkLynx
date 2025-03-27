@@ -9,9 +9,8 @@ Advanced network reconnaissance and service analysis suite written in Python.
 ## Installation
 
 ```bash
-git clone https://github.com/yourusername/darklynx-toolkit.git
-cd darklynx-toolkit
-pip install -r requirements.txt
+git clone https://github.com/luizgaf/DarkLynx
+cd DarkLynx
 ```
 
 **Features**
