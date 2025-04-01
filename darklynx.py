@@ -21,6 +21,68 @@ ART = r"""
 NAME = "DarkLynx Network Reconnaissance & Port Scanning Suite"
 SLOG = "    Unseen. Unstoppable. Uncover every port."
 
+def whois(url):
+    site = url.replace('http://', '').replace('https://', '').replace('www.', '').split('/')[0]
+
+    whoisServer = "whois.iana.org"
+    whoisPort = 43
+    timeout = 10 #sec
+
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(timeout)
+
+        s.connect((whoisServer, whoisPort))
+        s.send((site + "\r\n").encode())
+
+        data = b""
+        while True:
+            part = s.recv(4096)
+            if not part:
+                break
+            data += part
+
+        result = data.decode('utf-8', errors='ignore')
+
+        #regional who is for the url
+        for line in result.splitlines():
+            if "whois:" in line.lower():
+                regionalServer = line.split(":")[1].strip()
+                return regionalConsult(site, regionalServer)
+            
+        return result
+        
+    except Exception as e:
+        return f"Error: {str(e)}"
+    finally:
+        s.close()
+
+def regionalConsult(site, server):
+
+    port = 43
+    timeout = 10
+
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(timeout)
+        s.connect((server, port))
+        s.send((site + "\r\n").encode())
+
+        data = b""
+        while True:
+            part = s.recv(4096)
+            if not part:
+                break
+            data += part
+
+        return data.decode('utf-8', errors='ignore')
+    
+    except Exception as e:
+        return f"Error: {str(e)}"
+    finally:
+        s.close()
+                                                                                              
+
 def valid_ip(ip):
     try:
         socket.inet_aton(ip)
@@ -342,6 +404,14 @@ def main():
         help="Target IP and optional port (default: 80)"
     )
 
+    # --- WhoIS Resolver Command --- 
+    wi_parser = subparsers.add_parser("wi", help="WhoIS (usage: wi URL)")
+    wi_parser.add_argument(
+        "url",
+        type=str,
+        help="URL to search in WhoIS Database"
+    )
+
     args = parser.parse_args()
 
     try:
@@ -426,6 +496,15 @@ def main():
             print("-" * 50)
             print(banner if banner else "No banner received")
             print("-" * 50)
+
+        elif args.command == "wi": #Who is
+            if not args.url:
+                raise ValueError("URL is required for WhoIS search")
+            
+            print(f"\nSearching {args.url} in WhoIS Database...")
+            results = whois(args.url)
+            print(f"WhoIS search results:\n")
+            print(results)
 
     except ValueError as e:
         print(f"Error: {str(e)}", file=sys.stderr)
